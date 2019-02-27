@@ -5,6 +5,8 @@
         This code has not been optimized for size or speed. It was written
         with ease of understanding in mind.
 **************************************************************************/
+
+
 window.addEventListener("load", async () => {
     /** Represents a 2d point */
     interface Point {
@@ -17,7 +19,7 @@ window.addEventListener("load", async () => {
       width: number;
       height: number;
     }
-    
+
     /** Represents directions  */
     enum Direction { top, right, bottom, left };
   
@@ -28,7 +30,13 @@ window.addEventListener("load", async () => {
     const ballHalfSize = splitSize(ballSize, 2);
     const clientSize: Size = { width: document.documentElement.clientWidth, height: document.documentElement.clientHeight };
     const clientHalfSize = splitSize(clientSize, 2);
-  
+    const paddle1 = <HTMLDivElement>document.getElementsByClassName('paddle')[0];
+    const paddle2 = <HTMLDivElement>document.getElementsByClassName('paddle')[1];
+
+    const paddle1Height = paddle1.clientHeight;
+    let paddle1CurrentPosition = paddle1.clientTop;
+    const paddle2Height = paddle2.clientHeight;
+    let paddle2CurrentPosition = paddle2.clientTop;
     // Move ball to center of the screen
     let ballCurrentPosition: Point = { x: clientHalfSize.width, y: clientHalfSize.height };
     moveBall(ballCurrentPosition);
@@ -54,6 +62,49 @@ window.addEventListener("load", async () => {
         y: ballCurrentPosition.y + Math.tan(angle) * Math.abs(targetX - ballCurrentPosition.x) * ((quadrant === 0 || quadrant === 3) ? -1 : 1)
       };
   
+      if(ballCurrentPosition.y>paddle1CurrentPosition+paddle1Height&&ballCurrentPosition.y<paddle1CurrentPosition){
+        let paddleCurrentPosition: Point = { x: ballCurrentPosition.x, y: paddle1CurrentPosition };
+        const paddleTouch = await animateBall(ballCurrentPosition, paddleCurrentPosition);
+        switch (paddleTouch.touchDirection) {
+          case Direction.left: 
+            quadrant = (quadrant === 2) ? 1 : 0;
+            break;
+          case Direction.right:
+            quadrant = (quadrant === 0) ? 3 : 2;
+            break;
+          case Direction.top:
+            quadrant = (quadrant === 0) ? 1 : 2;
+            break;
+          case Direction.bottom:
+            quadrant = (quadrant === 2) ? 3 : 0;
+            break;
+          default:
+            throw new Error('Invalid direction, should never happen');
+        }
+      }
+
+      if(ballCurrentPosition.y>paddle2CurrentPosition+paddle2Height&&ballCurrentPosition.y<paddle2CurrentPosition){
+        let paddleCurrentPosition: Point = { x: ballCurrentPosition.x, y: paddle2CurrentPosition };
+        const paddleTouch = await animateBall(ballCurrentPosition, paddleCurrentPosition);
+        switch (paddleTouch.touchDirection) {
+          case Direction.left: 
+            quadrant = (quadrant === 2) ? 1 : 0;
+            break;
+          case Direction.right:
+            quadrant = (quadrant === 0) ? 3 : 2;
+            break;
+          case Direction.top:
+            quadrant = (quadrant === 0) ? 1 : 2;
+            break;
+          case Direction.bottom:
+            quadrant = (quadrant === 2) ? 3 : 0;
+            break;
+          default:
+            throw new Error('Invalid direction, should never happen');
+        }
+      }
+
+
       // Animate ball to calculated target position
       const borderTouch = await animateBall(ballCurrentPosition, targetBallPosition);
   
@@ -89,6 +140,8 @@ window.addEventListener("load", async () => {
      * @returns Position and direction where ball touched the border of the browser window
      *          at the end of the animation
      */
+
+    
     function animateBall(currentBallPosition: Point, targetBallPosition: Point): Promise<{touchPosition: Point, touchDirection: Direction}> {
       // Calculate x and y distances from current to target position
       const distanceToTarget: Size = subtractPoints(targetBallPosition, currentBallPosition);
@@ -116,12 +169,25 @@ window.addEventListener("load", async () => {
           moveBall(animatedPosition);
   
           // Check if the ball touches the browser window's border
+          
+          
           let touchDirection: Direction;
           if ((animatedPosition.x - ballHalfSize.width) < 0) { touchDirection = Direction.left; }
           if ((animatedPosition.y - ballHalfSize.height) < 0) { touchDirection = Direction.top; }
           if ((animatedPosition.x + ballHalfSize.width) > clientSize.width) { touchDirection = Direction.right; }
           if ((animatedPosition.y + ballHalfSize.height) > clientSize.height) { touchDirection = Direction.bottom; }
-  
+          if(overlaps( ball, paddle1 )){
+            //left
+            touchDirection= Direction.left;
+          }  
+
+          if(overlaps( ball, paddle2 )){
+            //right
+            touchDirection= Direction.right;
+          }  
+         
+    
+
           if (touchDirection !== undefined) {
             // Ball touches border -> stop animation
             clearInterval(interval);
@@ -170,4 +236,29 @@ window.addEventListener("load", async () => {
         height: s.height / divider
       };
     }
+
   });
+
+  let overlaps = (function () {
+    function getPositions(elem) {
+      let pos, width, height;
+      pos = $(elem).position();
+      width = $(elem).width();
+      height = $(elem).height();
+      return [[pos.left, pos.left + width], [pos.top, pos.top + height]];
+    }
+  
+    function comparePositions(p1, p2) {
+      let r1, r2;
+      r1 = p1[0] < p2[0] ? p1 : p2;
+      r2 = p1[0] < p2[0] ? p2 : p1;
+      return r1[1] > r2[0] || r1[0] === r2[0];
+    }
+  
+    return function (a, b) {
+      let pos1 = getPositions(a),
+        pos2 = getPositions(b);
+      return comparePositions(pos1[0], pos2[0]) && comparePositions(pos1[1], pos2[1]);
+    };
+  })();
+  
