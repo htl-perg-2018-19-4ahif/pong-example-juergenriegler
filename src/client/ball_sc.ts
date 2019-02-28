@@ -113,11 +113,11 @@ window.addEventListener("load", async () => {
       switch (borderTouch.touchDirection) {
         case Direction.left: 
           quadrant = (quadrant === 2) ? 1 : 0;
-          gameOver();
+          // gameOver();
           break;
         case Direction.right:
           quadrant = (quadrant === 0) ? 3 : 2;
-          gameWin();
+          // gameWin();
           break;
         case Direction.top:
           quadrant = (quadrant === 0) ? 1 : 2;
@@ -134,7 +134,7 @@ window.addEventListener("load", async () => {
         paddle1.hidden = true;
         paddle2.hidden = true; 
         $("body").html("<center><h1 style='color: white;'>Game Over!</h1></center"); 
-        process.exit(0);
+        throw new Error('Game Over!');
       }
   
       function gameWin() {
@@ -142,7 +142,7 @@ window.addEventListener("load", async () => {
         paddle1.hidden = true;
         paddle2.hidden = true;
         $("body").html("<center><h1 style='color: white;'>You Won!</h1></center"); 
-        process.exit(0);
+        throw new Error('Game Won!');
       }
   
       // The touch position is the new current position of the ball.
@@ -190,9 +190,9 @@ window.addEventListener("load", async () => {
           
           
           let touchDirection: Direction;
-          if ((animatedPosition.x - ballHalfSize.width) < 0) { touchDirection = Direction.left; }
+          if ((animatedPosition.x - ballHalfSize.width) < 0) { touchDirection = Direction.left; gameOver(); }
           if ((animatedPosition.y - ballHalfSize.height) < 0) { touchDirection = Direction.top; }
-          if ((animatedPosition.x + ballHalfSize.width) > clientSize.width) { touchDirection = Direction.right; }
+          if ((animatedPosition.x + ballHalfSize.width) > clientSize.width) { touchDirection = Direction.right; gameWin(); }
           if ((animatedPosition.y + ballHalfSize.height) > clientSize.height) { touchDirection = Direction.bottom; }
           if(overlaps( ball, paddle1 )){
             //left
