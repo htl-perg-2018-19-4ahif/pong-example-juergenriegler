@@ -113,11 +113,9 @@ window.addEventListener("load", async () => {
       switch (borderTouch.touchDirection) {
         case Direction.left: 
           quadrant = (quadrant === 2) ? 1 : 0;
-          // gameOver();
           break;
         case Direction.right:
           quadrant = (quadrant === 0) ? 3 : 2;
-          // gameWin();
           break;
         case Direction.top:
           quadrant = (quadrant === 0) ? 1 : 2;
@@ -134,7 +132,7 @@ window.addEventListener("load", async () => {
         paddle1.hidden = true;
         paddle2.hidden = true; 
         $("body").html("<center><h1 style='color: white;'>Game Over!</h1></center"); 
-        throw new Error('Game Over!');
+        window.stop();
       }
   
       function gameWin() {
@@ -142,7 +140,7 @@ window.addEventListener("load", async () => {
         paddle1.hidden = true;
         paddle2.hidden = true;
         $("body").html("<center><h1 style='color: white;'>You Won!</h1></center"); 
-        throw new Error('Game Won!');
+        window.stop();
       }
   
       // The touch position is the new current position of the ball.
